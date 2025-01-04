@@ -26,11 +26,11 @@
 :: first few times, reboot, test your software and connectivity, proceed with the next sequence - this helps with troubleshooting.
 :: HOW TO RUN THE SCRIPT
 :: The command below creates the restore point, you can do it manually, too. 
-powershell.exe enable-computerrestore -drive c:\
-powershell.exe vssadmin resize shadowstorage /on=c: /for=c: /maxsize=5000MB
+:: powershell.exe enable-computerrestore -drive c:\
+:: powershell.exe vssadmin resize shadowstorage /on=c: /for=c: /maxsize=5000MB
 :: checkpoint-computer -description "beforehardening"
-reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SystemRestore" /v SystemRestorePointCreationFrequency /t REG_DWORD /d 20 /f
-powershell.exe -ExecutionPolicy Bypass -Command "Checkpoint-Computer -Description 'BeforeSecurityHardening' -RestorePointType 'MODIFY_SETTINGS'"
+:: reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SystemRestore" /v SystemRestorePointCreationFrequency /t REG_DWORD /d 20 /f
+::powershell.exe -ExecutionPolicy Bypass -Command "Checkpoint-Computer -Description 'BeforeSecurityHardening' -RestorePointType 'MODIFY_SETTINGS'"
 :: 1. In Settings, search for Restore, then choose Create a restore point, then in System Protection, make sure it is On and has at least 6% of the drive.  
 :: Create a Restore point, name it "Prior Security Hardening" 
 :: 2. Go to https://raw.githubusercontent.com/atlantsecurity/windows-hardening-scripts/main/Windows-10-Hardening-script.cmd and download the cmd script to Downloads. 
@@ -44,8 +44,7 @@ powershell.exe -ExecutionPolicy Bypass -Command "Checkpoint-Computer -Descriptio
 :: FOR /F "usebackq tokens=2 delims=:" %a IN (`sc.exe sdshow scmanager`) DO  sc.exe sdset scmanager D:(D;;GA;;;NU)%a
 :: Block remote commands https://docs.microsoft.com/en-us/windows/win32/com/enabledcom
 reg add HKEY_LOCAL_MACHINE\Software\Microsoft\OLE /v EnableDCOM /t REG_SZ /d N /F
-:: Change file associations to protect against common ransomware and social engineering attacks. These are for regular users. Technicallly savvy 
-:: users know how to mount an iso or run a script even if they are associated with notepad. 
+:: Change file associations - for convenience here really, if windows cant safely mount an iso or VDMX it's an OS prolem
 assoc .bat=txtfile
 assoc .cmd=txtfile
 assoc .chm=txtfile
@@ -59,9 +58,9 @@ assoc .wsf=txtfile
 assoc .ws=txtfile
 assoc .wsh=txtfile
 assoc .scr=txtfile
+assoc .sct=txtfile
 assoc .url=txtfile
 assoc .ps1=txtfile
-assoc .iso=txtfile
 :: https://seclists.org/fulldisclosure/2019/Mar/27
 assoc .reg=txtfile
 :: https://www.trustwave.com/Resources/SpiderLabs-Blog/Firework--Leveraging-Microsoft-Workspaces-in-a-Penetration-Test/
@@ -142,41 +141,7 @@ reg add "HKCU\SYSTEM\CurrentControlSet\Policies\EarlyLaunch" /v DriverLoadPolicy
 :: Stop some of the most common SMB based lateral movement techniques dead in their tracks
 powershell.exe Set-MpPreference -AttackSurfaceReductionRules_Ids D1E49AAC-8F56-4280-B9BA-993A6D -AttackSurfaceReductionRules_Actions Enabled
 ::
-:: Block Office applications from creating child processes
-powershell.exe Add-MpPreference -AttackSurfaceReductionRules_Ids D4F940AB-401B-4EFC-AADC-AD5F3C50688A -AttackSurfaceReductionRules_Actions Enabled
-::
-:: Block Office applications from injecting code into other processes
-powershell.exe Add-MpPreference -AttackSurfaceReductionRules_Ids 75668C1F-73B5-4CF0-BB93-3ECF5CB7CC84 -AttackSurfaceReductionRules_Actions enable
-::
-:: Block Win32 API calls from Office macro
-powershell.exe Add-MpPreference -AttackSurfaceReductionRules_Ids 92E97FA1-2EDF-4476-BDD6-9DD0B4DDDC7B -AttackSurfaceReductionRules_Actions enable
-::
-:: Block Office applications from creating executable content
-powershell.exe Add-MpPreference -AttackSurfaceReductionRules_Ids 3B576869-A4EC-4529-8536-B80A7769E899 -AttackSurfaceReductionRules_Actions enable
-::
-:: Block execution of potentially obfuscated scripts
-powershell.exe Add-MpPreference -AttackSurfaceReductionRules_Ids 5BEB7EFE-FD9A-4556-801D-275E5FFC04CC -AttackSurfaceReductionRules_Actions Enabled
-::
-:: Block executable content from email client and webmail
-powershell.exe Add-MpPreference -AttackSurfaceReductionRules_Ids BE9BA2D9-53EA-4CDC-84E5-9B1EEEE46550 -AttackSurfaceReductionRules_Actions Enabled
-::
-:: Block JavaScript or VBScript from launching downloaded executable content
-powershell.exe Add-MpPreference -AttackSurfaceReductionRules_Ids D3E037E1-3EB8-44C8-A917-57927947596D -AttackSurfaceReductionRules_Actions Enabled
-::
-:: Block executable files from running unless they meet a prevalence, age, or trusted list criteria
-powershell.exe Add-MpPreference -AttackSurfaceReductionRules_Ids 01443614-cd74-433a-b99e-2ecdc07bfc25 -AttackSurfaceReductionRules_Actions Enabled
-::
-:: Use advanced protection against ransomware
-powershell.exe Add-MpPreference -AttackSurfaceReductionRules_Ids C1DB55AB-C21A-4637-BB3F-A12568109D35 -AttackSurfaceReductionRules_Actions Enabled
-::
-:: Block Win32 API calls from Office macro
-powershell.exe Add-MpPreference -AttackSurfaceReductionRules_Ids 92E97FA1-2EDF-4476-BDD6-9DD0B4DDDC7B -AttackSurfaceReductionRules_Actions Enabled
-::
-:: Block credential stealing from the Windows local security authority subsystem (lsass.exe)
-powershell.exe Add-MpPreference -AttackSurfaceReductionRules_Ids 9E6C4E1F-7D60-472F-BA1A-A39EF669E4B2 -AttackSurfaceReductionRules_Actions Enabled
-::
-:: Block untrusted and unsigned processes that run from USB
-powershell.exe Add-MpPreference -AttackSurfaceReductionRules_Ids B2B3F03D-6A65-4F7B-A9C7-1C7EF74A9BA4 -AttackSurfaceReductionRules_Actions Enabled
+:: Handled
 ::
 :: EDIT: Enable Controlled Folder Access - enable with caution. Application installations may be blocked - admin elevation 
 :: required to approve an app install through CFA. This is an extremely valuable setting but only for machines which are already fully configured. 
@@ -189,10 +154,11 @@ powershell.exe Set-MpPreference -EnableControlledFolderAccess Enabled
 powershell.exe Set-MpPreference -MAPSReporting Advanced
 powershell.exe Set-MpPreference -SubmitSamplesConsent SendAllSamples
 ::
+:: HAndled
 :: Enable Defender exploit system-wide protection
 :: The commented line includes CFG which can cause issues with apps like Discord & Mouse Without Borders
 :: powershell.exe Set-Processmitigation -System -Enable DEP,EmulateAtlThunks,BottomUp,HighEntropy,SEHOP,SEHOPTelemetry,TerminateOnError,CFG
-powershell.exe Set-Processmitigation -System -Enable DEP,EmulateAtlThunks,BottomUp,HighEntropy,SEHOP,SEHOPTelemetry,TerminateOnError
+:: powershell.exe Set-Processmitigation -System -Enable DEP,EmulateAtlThunks,BottomUp,HighEntropy,SEHOP,SEHOPTelemetry,TerminateOnError
 ::
 :: Enable Windows Defender Application Guard
 :: This setting is commented out as it enables subset of DC/CG which renders other virtualization products unsuable. Can be enabled if you don't use those
@@ -228,7 +194,8 @@ powershell.exe Set-MpPreference -EnableNetworkProtection Enabled
 :: Windows10-v1809_ExploitGuard-Security-Baseline.xml is taken from the official Microsoft v1809 Baseline
 :: Windows10-v1903_ExploitGuard-Security-Baseline.xml is taken from the official Microsoft v1903 Baseline
 :: Windows10-v1909_ExploitGuard-Security-Baseline.xml is taken from the official Microsoft v1909 Baseline
-:: ---------------------
+:: -
+:: note--------------------
 powershell.exe Invoke-WebRequest -Uri https://demo.wd.microsoft.com/Content/ProcessMitigation.xml -OutFile ProcessMitigation.xml
 powershell.exe Set-ProcessMitigation -PolicyFilePath ProcessMitigation.xml
 del ProcessMitigation.xml
@@ -295,6 +262,62 @@ reg add "HKCU\SOFTWARE\Microsoft\Office\16.0\Word\Security" /v AllowDDE /t REG_D
 reg add "HKCU\SOFTWARE\Microsoft\Office\Common\Security" /v DisableAllActiveX /t REG_DWORD /d 1 /f
 ::
 ::
+:: Block OneNote malware
+:: https://www.huntress.com/blog/addressing-initial-access
+:: Uncomment if you want to disable file embedding for all files in OneNote
+:: WARNING. This prevents embedding, but prevents interacting with embedded files.
+:: reg add "HKCU\Software\Policies\Microsoft\Office\12.0\Onenote\options" /v disableembeddedfiles /t REG_DWORD /d 1 /f
+:: reg add "HKCU\Software\Policies\Microsoft\Office\14.0\Onenote\options" /v disableembeddedfiles /t REG_DWORD /d 1 /f
+:: reg add "HKCU\Software\Policies\Microsoft\Office\15.0\Onenote\options" /v disableembeddedfiles /t REG_DWORD /d 1 /f
+:: reg add "HKCU\Software\Policies\Microsoft\Office\16.0\Onenote\options" /v disableembeddedfiles /t REG_DWORD /d 1 /f
+:: Disables embedding for certain risky file extensions commonly used for malware spam campaigns, and some more extensions blocked in email gateways.
+:: https://www.bleepingcomputer.com/news/security/microsoft-onenote-will-block-120-dangerous-file-extensions/
+:: https://help.proofpoint.com/Proofpoint_Essentials/Email_Security/Administrator_Topics/090_filtersandsenderlists/Attachment_Types_Proofpoint_Essentials_Blocks_By_Default
+:: https://community.mimecast.com/s/article/email-security-configuring-attachment-management-definitions
+:: https://support.microsoft.com/en-us/office/blocked-attachments-in-outlook-434752e1-02d3-4e90-9124-8b81e49a8519
+:: https://www.ired.team/offensive-security/initial-access/t1187-forced-authentication
+:: https://support.intermedia.com/app/articles/detail/a_id/12447/type/KB
+reg add "HKCU\Software\Policies\Microsoft\Office\12.0\Onenote\options\embeddedfileopenoptions" /v blockedextensions /t REG_SZ /d ".action;.ade;.adp;.apk;.app;.appimage;.application;.appref-ms;.asp;.aspx;.asx;.bas;.bash;.bat;.bgi;.bin;.cab;.cer;.chm;.class;.cmd;.cnt;.com;.command;.cpl;.crt;.csh;.deb;.der;.dev;.diagcab;.dll;.dmg;.drv;.exe;.fxp;.gadget;.grp;.hlp;.hpj;.hta;.htc;.htm;.html;.img;.inf;.inf1;.ins;.inx;.ipa;.iso;.isp;.isu;.its;.jar;.jnlp;.job;.js;.jse;.ksh;.lnk;.mad;.maf;.mag;.mam;.maq;.mar;.mas;.mat;.mau;.mav;.maw;.mcf;.mda;.mdb;.mde;.mdt;.mdw;.mdz;.msc;.msh;.msh1;.msh1xml;.msh2;.msh2xml;.mshxml;.msi;.msp;.mst;.msu;.ocx;.ops;.osd;.osx;.out;.paf;.pcd;.php;.pif;.pl;.plg;.prf;.prg;.printerexport;.ps1;.ps1xml;.ps2;.ps2xml;.psc1;.psc2;.psd1;.psdm1;.psm1;.pst;.py;.pyc;.pyo;.python;.pyw;.pyz;.pyzw;.reg;.rgs;.rpm;.run;.scf;.scr;.sct;.sh;.shb;.shs;.swf;.theme;.tmp;.u3p;.url;.vb;.vbe;.vbp;.vbs;.vbscript;.vbx;.vhd;.vhdx;.vsmacros;.vsw;.vtso;.webpnp;.website;.workflow;.ws;.wsc;.wsf;.wsh;.xbap;.xll;.xnk" /f
+reg add "HKCU\Software\Policies\Microsoft\Office\14.0\Onenote\options\embeddedfileopenoptions" /v blockedextensions /t REG_SZ /d ".action;.ade;.adp;.apk;.app;.appimage;.application;.appref-ms;.asp;.aspx;.asx;.bas;.bash;.bat;.bgi;.bin;.cab;.cer;.chm;.class;.cmd;.cnt;.com;.command;.cpl;.crt;.csh;.deb;.der;.dev;.diagcab;.dll;.dmg;.drv;.exe;.fxp;.gadget;.grp;.hlp;.hpj;.hta;.htc;.htm;.html;.img;.inf;.inf1;.ins;.inx;.ipa;.iso;.isp;.isu;.its;.jar;.jnlp;.job;.js;.jse;.ksh;.lnk;.mad;.maf;.mag;.mam;.maq;.mar;.mas;.mat;.mau;.mav;.maw;.mcf;.mda;.mdb;.mde;.mdt;.mdw;.mdz;.msc;.msh;.msh1;.msh1xml;.msh2;.msh2xml;.mshxml;.msi;.msp;.mst;.msu;.ocx;.ops;.osd;.osx;.out;.paf;.pcd;.php;.pif;.pl;.plg;.prf;.prg;.printerexport;.ps1;.ps1xml;.ps2;.ps2xml;.psc1;.psc2;.psd1;.psdm1;.psm1;.pst;.py;.pyc;.pyo;.python;.pyw;.pyz;.pyzw;.reg;.rgs;.rpm;.run;.scf;.scr;.sct;.sh;.shb;.shs;.swf;.theme;.tmp;.u3p;.url;.vb;.vbe;.vbp;.vbs;.vbscript;.vbx;.vhd;.vhdx;.vsmacros;.vsw;.vtso;.webpnp;.website;.workflow;.ws;.wsc;.wsf;.wsh;.xbap;.xll;.xnk" /f
+reg add "HKCU\Software\Policies\Microsoft\Office\15.0\Onenote\options\embeddedfileopenoptions" /v blockedextensions /t REG_SZ /d ".action;.ade;.adp;.apk;.app;.appimage;.application;.appref-ms;.asp;.aspx;.asx;.bas;.bash;.bat;.bgi;.bin;.cab;.cer;.chm;.class;.cmd;.cnt;.com;.command;.cpl;.crt;.csh;.deb;.der;.dev;.diagcab;.dll;.dmg;.drv;.exe;.fxp;.gadget;.grp;.hlp;.hpj;.hta;.htc;.htm;.html;.img;.inf;.inf1;.ins;.inx;.ipa;.iso;.isp;.isu;.its;.jar;.jnlp;.job;.js;.jse;.ksh;.lnk;.mad;.maf;.mag;.mam;.maq;.mar;.mas;.mat;.mau;.mav;.maw;.mcf;.mda;.mdb;.mde;.mdt;.mdw;.mdz;.msc;.msh;.msh1;.msh1xml;.msh2;.msh2xml;.mshxml;.msi;.msp;.mst;.msu;.ocx;.ops;.osd;.osx;.out;.paf;.pcd;.php;.pif;.pl;.plg;.prf;.prg;.printerexport;.ps1;.ps1xml;.ps2;.ps2xml;.psc1;.psc2;.psd1;.psdm1;.psm1;.pst;.py;.pyc;.pyo;.python;.pyw;.pyz;.pyzw;.reg;.rgs;.rpm;.run;.scf;.scr;.sct;.sh;.shb;.shs;.swf;.theme;.tmp;.u3p;.url;.vb;.vbe;.vbp;.vbs;.vbscript;.vbx;.vhd;.vhdx;.vsmacros;.vsw;.vtso;.webpnp;.website;.workflow;.ws;.wsc;.wsf;.wsh;.xbap;.xll;.xnk" /f
+reg add "HKCU\Software\Policies\Microsoft\Office\16.0\Onenote\options\embeddedfileopenoptions" /v blockedextensions /t REG_SZ /d ".action;.ade;.adp;.apk;.app;.appimage;.application;.appref-ms;.asp;.aspx;.asx;.bas;.bash;.bat;.bgi;.bin;.cab;.cer;.chm;.class;.cmd;.cnt;.com;.command;.cpl;.crt;.csh;.deb;.der;.dev;.diagcab;.dll;.dmg;.drv;.exe;.fxp;.gadget;.grp;.hlp;.hpj;.hta;.htc;.htm;.html;.img;.inf;.inf1;.ins;.inx;.ipa;.iso;.isp;.isu;.its;.jar;.jnlp;.job;.js;.jse;.ksh;.lnk;.mad;.maf;.mag;.mam;.maq;.mar;.mas;.mat;.mau;.mav;.maw;.mcf;.mda;.mdb;.mde;.mdt;.mdw;.mdz;.msc;.msh;.msh1;.msh1xml;.msh2;.msh2xml;.mshxml;.msi;.msp;.mst;.msu;.ocx;.ops;.osd;.osx;.out;.paf;.pcd;.php;.pif;.pl;.plg;.prf;.prg;.printerexport;.ps1;.ps1xml;.ps2;.ps2xml;.psc1;.psc2;.psd1;.psdm1;.psm1;.pst;.py;.pyc;.pyo;.python;.pyw;.pyz;.pyzw;.reg;.rgs;.rpm;.run;.scf;.scr;.sct;.sh;.shb;.shs;.swf;.theme;.tmp;.u3p;.url;.vb;.vbe;.vbp;.vbs;.vbscript;.vbx;.vhd;.vhdx;.vsmacros;.vsw;.vtso;.webpnp;.website;.workflow;.ws;.wsc;.wsf;.wsh;.xbap;.xll;.xnk" /f
+::
+::
+:: Enable AMSI for all documents by setting the following registry key - Office 2016 or Office 365 installed
+:: https://getadmx.com/?Category=Office2016&Policy=office16.Office.Microsoft.Policies.Windows::L_MacroRuntimeScanScope
+:: https://malwaretips.com/threads/office-365-and-amsi-support-for-vba-macros.87281/
+reg add "HKCU\Software\Microsoft\Office\16.0\Common\Security" /v MacroRuntimeScanScope /t REG_DWORD /d 2 /f
+reg add "HKCU\Software\Policies\Microsoft\Office\16.0\Common\Security" /v MacroRuntimeScanScope /t REG_DWORD /d 2 /f
+:: 
+:: Source: https://gist.github.com/wdormann/732bb88d9b5dd5a66c9f1e1498f31a1b
+:: 
+reg add "HKCU\Software\Microsoft\Office\14.0\Word\Options\WordMail" /v DontUpdateLinks /t REG_DWORD /d 00000001 /f
+reg add "HKCU\Software\Microsoft\Office\15.0\Word\Options\WordMail" /v DontUpdateLinks /t REG_DWORD /d 00000001 /f
+reg add "HKCU\Software\Microsoft\Office\16.0\Word\Options\WordMail" /v DontUpdateLinks /t REG_DWORD /d 00000001 /f
+::
+:: 
+:: File Block policy to prevent Office from opening RTF documents
+:: CVE-2023-21716 and CVE-2022-30190
+:: - Right , we have libreoffice for this ...
+reg add "HKCU\Software\Microsoft\Office\14.0\Word\Security\FileBlock" /v RtfFiles /t REG_DWORD /d 00000002 /f
+reg add "HKCU\Software\Microsoft\Office\15.0\Word\Security\FileBlock" /v RtfFiles /t REG_DWORD /d 00000002 /f
+reg add "HKCU\Software\Microsoft\Office\16.0\Word\Security\FileBlock" /v RtfFiles /t REG_DWORD /d 00000002 /f
+reg add "HKCU\Software\Microsoft\Office\14.0\Word\Security\FileBlock" /v OpenInProtectedView /t REG_DWORD /d 00000000 /f
+reg add "HKCU\Software\Microsoft\Office\15.0\Word\Security\FileBlock" /v OpenInProtectedView /t REG_DWORD /d 00000000 /f
+reg add "HKCU\Software\Microsoft\Office\16.0\Word\Security\FileBlock" /v OpenInProtectedView /t REG_DWORD /d 00000000 /f
+::
+::
+:: Block Macro Execution from Internet
+:: https://www.bleepingcomputer.com/news/microsoft/how-to-auto-block-macros-in-microsoft-office-docs-from-the-internet/
+reg add "HKCU\Software\Policies\Microsoft\Office\15.0\Word\Security" /v blockcontentexecutionfrominternet /t REG_DWORD /d 1 /f
+reg add "HKCU\Software\Policies\Microsoft\Office\15.0\Excel\Security" /v blockcontentexecutionfrominternet /t REG_DWORD /d 1 /f
+reg add "HKCU\Software\Policies\Microsoft\Office\15.0\PowerPoint\Security" /v blockcontentexecutionfrominternet /t REG_DWORD /d 1 /f
+:: reg add "HKCU\Software\Policies\Microsoft\Office\16.0\Outlook\Security" /v markinternalasunsafe /t REG_DWORD /d 0 /f
+reg add "HKCU\Software\Policies\Microsoft\Office\16.0\Word\Security" /v blockcontentexecutionfrominternet /t REG_DWORD /d 1 /f
+reg add "HKCU\Software\Policies\Microsoft\Office\16.0\Excel\Security" /v blockcontentexecutionfrominternet /t REG_DWORD /d 1 /f
+reg add "HKCU\Software\Policies\Microsoft\Office\16.0\PowerPoint\Security" /v blockcontentexecutionfrominternet /t REG_DWORD /d 1 /f
+::
+::
 ::###############################################################################################################
 :: General OS hardening
 :: Disable DNS Multicast, NTLM, SMBv1, NetBIOS over TCP/IP, PowerShellV2, AutoRun, 8.3 names, Last Access timestamp and weak TLS/SSL ciphers and protocols
@@ -327,6 +350,8 @@ reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" /v Cons
 reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Attachments" /v SaveZoneInformation /t REG_DWORD /d 2 /f
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Explorer" /v NoDataExecutionPrevention /t REG_DWORD /d 0 /f
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Explorer" /v NoHeapTerminationOnCorruption /t REG_DWORD /d 0 /f
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Printers" /v DisableWebPnPDownload /t REG_DWORD /d 1 /f
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Printers" /v DisableHTTPPrinting /t REG_DWORD /d 1 /f
 reg add "HKLM\SOFTWARE\Microsoft\WcmSvc\wifinetworkmanager\config" /v AutoConnectAllowedOEM /t REG_DWORD /d 0 /f
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\WcmSvc\GroupPolicy" /v fMinimizeConnections /t REG_DWORD /d 1 /f
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\Netbt\Parameters" /v NoNameReleaseOnDemand /t REG_DWORD /d 1 /f
@@ -427,7 +452,9 @@ reg add "HKCU\SOFTWARE\Microsoft\Windows Script Host\Settings" /v UseWINSAFER /t
 :: Disable IPv6
 :: https://support.microsoft.com/en-us/help/929852/guidance-for-configuring-ipv6-in-windows-for-advanced-users
 :: ---------------------
-reg add "HKLM\SYSTEM\CurrentControlSet\services\tcpip6\parameters" /v DisabledComponents /t REG_DWORD /d 0xFF /f
+:: ASK!
+::reg add "HKLM\SYSTEM\CurrentControlSet\services\tcpip6\parameters" /v DisabledComponents /t REG_DWORD /d 0xFF /f
+::
 :: Windows Update Settings
 :: Prevent Delivery Optimization from downloading Updates from other computers across the internet
 :: 1 will restrict to LAN only. 0 will disable the feature entirely
@@ -536,10 +563,37 @@ netsh advfirewall firewall add rule name="Block Notepad.exe netconns" program="%
 netsh advfirewall firewall add rule name="Block odbcconf.exe netconns" program="%systemroot%\system32\odbcconf.exe" protocol=tcp dir=out enable=yes action=block profile=any
 netsh advfirewall firewall add rule name="Block odbcconf.exe netconns" program="%systemroot%\SysWOW64\odbcconf.exe" protocol=tcp dir=out enable=yes action=block profile=any
 netsh advfirewall firewall add rule name="Block pcalua.exe netconns" program="%systemroot%\system32\pcalua.exe" protocol=tcp dir=out enable=yes action=block profile=any
-netsh advfirewall firewall add rule name="Block pcalua.exe netconns" program="%systemroot%\SysWOW64\pcalua.exe" protocol=tcp dir=out enable=yes action=block profile=any
-netsh advfirewall firewall add rule name="Block regasm.exe netconns" program="%systemroot%\system32\regasm.exe" protocol=tcp dir=out enable=yes action=block profile=any
-netsh advfirewall firewall add rule name="Block regasm.exe netconns" program="%systemroot%\SysWOW64\regasm.exe" protocol=tcp dir=out enable=yes action=block profile=any
+netsh advfirewall firewall add rule name="Block print.exe netconns" program="%systemroot%\system32\print.exe" protocol=tcp dir=out enable=yes action=block profile=any
 netsh advfirewall firewall add rule name="Block regsvr32.exe netconns" program="%systemroot%\system32\regsvr32.exe" protocol=tcp dir=out enable=yes action=block profile=any
+netsh advfirewall firewall add rule name="Block replace.exe netconns" program="%systemroot%\system32\replace.exe" protocol=tcp dir=out enable=yes action=block profile=any
+netsh advfirewall firewall add rule name="Block rundll32.exe netconns" program="%systemroot%\system32\rundll32.exe" protocol=tcp dir=out enable=yes action=block profile=any
+netsh advfirewall firewall add rule name="Block runscripthelper.exe netconns" program="%systemroot%\system32\runscripthelper.exe" protocol=tcp dir=out enable=yes action=block profile=any
+netsh advfirewall firewall add rule name="Block scriptrunner.exe netconns" program="%systemroot%\system32\scriptrunner.exe" protocol=tcp dir=out enable=yes action=block profile=any
+netsh advfirewall firewall add rule name="Block SyncAppvPublishingServer.exe netconns" program="%systemroot%\system32\SyncAppvPublishingServer.exe" protocol=tcp dir=out enable=yes action=block profile=any
+netsh advfirewall firewall add rule name="Block wmic.exe netconns" program="%systemroot%\system32\wbem\wmic.exe" protocol=tcp dir=out enable=yes action=block profile=any
+netsh advfirewall firewall add rule name="Block wscript.exe netconns" program="%systemroot%\system32\wscript.exe" protocol=tcp dir=out enable=yes action=block profile=any
+netsh advfirewall firewall add rule name="Block regasm.exe netconns" program="%systemroot%\system32\regasm.exe" protocol=tcp dir=out enable=yes action=block profile=any
+netsh advfirewall firewall add rule name="Block odbcconf.exe netconns" program="%systemroot%\system32\odbcconf.exe" protocol=tcp dir=out enable=yes action=block profile=any
+
+netsh advfirewall firewall add rule name="Block regasm.exe netconns" program="%systemroot%\SysWOW64\regasm.exe" protocol=tcp dir=out enable=yes action=block profile=any
+netsh advfirewall firewall add rule name="Block odbcconf.exe netconns" program="%systemroot%\SysWOW64\odbcconf.exe" protocol=tcp dir=out enable=yes action=block profile=any
+netsh advfirewall firewall add rule name="Block appvlp.exe netconns" program="C:\Program Files\Microsoft Office\root\client\AppVLP.exe" protocol=tcp dir=out enable=yes action=block profile=any
+netsh advfirewall firewall add rule name="Block calc.exe netconns" program="%systemroot%\SysWOW64\calc.exe" protocol=tcp dir=out enable=yes action=block profile=any
+netsh advfirewall firewall add rule name="Block certutil.exe netconns" program="%systemroot%\SysWOW64\certutil.exe" protocol=tcp dir=out enable=yes action=block profile=any
+netsh advfirewall firewall add rule name="Block cmstp.exe netconns" program="%systemroot%\SysWOW64\cmstp.exe" protocol=tcp dir=out enable=yes action=block profile=any
+netsh advfirewall firewall add rule name="Block cscript.exe netconns" program="%systemroot%\SysWOW64\cscript.exe" protocol=tcp dir=out enable=yes action=block profile=any
+netsh advfirewall firewall add rule name="Block esentutl.exe netconns" program="%systemroot%\SysWOW64\esentutl.exe" protocol=tcp dir=out enable=yes action=block profile=any
+netsh advfirewall firewall add rule name="Block expand.exe netconns" program="%systemroot%\SysWOW64\expand.exe" protocol=tcp dir=out enable=yes action=block profile=any
+netsh advfirewall firewall add rule name="Block extrac32.exe netconns" program="%systemroot%\SysWOW64\extrac32.exe" protocol=tcp dir=out enable=yes action=block profile=any
+netsh advfirewall firewall add rule name="Block findstr.exe netconns" program="%systemroot%\SysWOW64\findstr.exe" protocol=tcp dir=out enable=yes action=block profile=any
+netsh advfirewall firewall add rule name="Block hh.exe netconns" program="%systemroot%\SysWOW64\hh.exe" protocol=tcp dir=out enable=yes action=block profile=any
+netsh advfirewall firewall add rule name="Block makecab.exe netconns" program="%systemroot%\SysWOW64\makecab.exe" protocol=tcp dir=out enable=yes action=block profile=any
+netsh advfirewall firewall add rule name="Block mshta.exe netconns" program="%systemroot%\SysWOW64\mshta.exe" protocol=tcp dir=out enable=yes action=block profile=any
+netsh advfirewall firewall add rule name="Block msiexec.exe netconns" program="%systemroot%\SysWOW64\msiexec.exe" protocol=tcp dir=out enable=yes action=block profile=any
+netsh advfirewall firewall add rule name="Block nltest.exe netconns" program="%systemroot%\SysWOW64\nltest.exe" protocol=tcp dir=out enable=yes action=block profile=any
+netsh advfirewall firewall add rule name="Block Notepad.exe netconns" program="%systemroot%\SysWOW64\notepad.exe" protocol=tcp dir=out enable=yes action=block profile=any
+netsh advfirewall firewall add rule name="Block pcalua.exe netconns" program="%systemroot%\SysWOW64\pcalua.exe" protocol=tcp dir=out enable=yes action=block profile=any
+netsh advfirewall firewall add rule name="Block print.exe netconns" program="%systemroot%\SysWOW64\print.exe" protocol=tcp dir=out enable=yes action=block profile=any
 netsh advfirewall firewall add rule name="Block regsvr32.exe netconns" program="%systemroot%\SysWOW64\regsvr32.exe" protocol=tcp dir=out enable=yes action=block profile=any
 netsh advfirewall firewall add rule name="Block replace.exe netconns" program="%systemroot%\system32\replace.exe" protocol=tcp dir=out enable=yes action=block profile=any
 netsh advfirewall firewall add rule name="Block replace.exe netconns" program="%systemroot%\SysWOW64\replace.exe" protocol=tcp dir=out enable=yes action=block profile=any
@@ -606,7 +660,7 @@ reg add "HKLM\SOFTWARE\Policies\Microsoft\Biometrics\FacialFeatures" /v Enhanced
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Personalization" /v NoLockScreenCamera /t REG_DWORD /d 1 /f
 :: Prevent Windows app voice activation while locked
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" /v LetAppsActivateWithVoiceAboveLock /t REG_DWORD /d 2 /f
-:: Prevent Windows app voice activation entirely (be mindful of those with accesibility needs)
+:: Prevent Windows app voice activation entirely (be mindful of those with accesibility needs) - then ask
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" /v LetAppsActivateWithVoice /t REG_DWORD /d 2 /f
 ::
 :: Disable weak TLS/SSL ciphers and protocols
@@ -668,6 +722,8 @@ reg add "HKLM\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protoc
 reg add "HKLM\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.2\Client" /v DisabledByDefault /t REG_DWORD /d 0 /f
 reg add "HKLM\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.2\Server" /v Enabled /t REG_DWORD /d 0xffffffff /f
 reg add "HKLM\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols\TLS 1.2\Server" /v DisabledByDefault /t REG_DWORD /d 0 /f
+:: Encryption - Cipher Suites (order) - All cipher included to avoid application problems
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Cryptography\Configuration\SSL\00010002" /v Functions /t REG_SZ /d "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256,TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384,TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256,TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA,TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,TLS_RSA_WITH_AES_256_GCM_SHA384,TLS_RSA_WITH_AES_128_GCM_SHA256,TLS_RSA_WITH_AES_256_CBC_SHA256,TLS_RSA_WITH_AES_128_CBC_SHA256,TLS_RSA_WITH_AES_256_CBC_SHA,TLS_RSA_WITH_AES_128_CBC_SHA,TLS_AES_256_GCM_SHA384,TLS_AES_128_GCM_SHA256,TLS_DHE_RSA_WITH_AES_256_GCM_SHA384,TLS_DHE_RSA_WITH_AES_128_GCM_SHA256,TLS_RSA_WITH_3DES_EDE_CBC_SHA,TLS_RSA_WITH_NULL_SHA256,TLS_RSA_WITH_NULL_SHA,TLS_PSK_WITH_AES_256_GCM_SHA384,TLS_PSK_WITH_AES_128_GCM_SHA256,TLS_PSK_WITH_AES_256_CBC_SHA384,TLS_PSK_WITH_AES_128_CBC_SHA256,TLS_PSK_WITH_NULL_SHA384,TLS_PSK_WITH_NULL_SHA256" /f
 ::
 :: OCSP stapling - Enabling this registry key has a potential performance impact
 :: reg add "HKLM\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL" /v EnableOcspStaplingForSni /t REG_DWORD /d 1 /f
@@ -691,6 +747,8 @@ reg add "HKCU\SOFTWARE\Policies\Microsoft\MicrosoftEdge\PhishingFilter" /v Enabl
 reg add "HKCU\SOFTWARE\Policies\Microsoft\Windows\Installer" /v SafeForScripting /t REG_DWORD /d 0 /f
 :: Disable Edge password manager to encourage use of proper password manager
 reg add "HKCU\SOFTWARE\Policies\Microsoft\MicrosoftEdge\Main" /v "FormSuggest Passwords" /t REG_SZ /d no /f
+:: Disable Discover Side Toolbar
+reg add "HKLM\Software\Policies\Microsoft\Edge" /v "HubsSidebarEnabled" /t REG_DWORD /d 0 /f
 ::
 ::
 ::#######################################################################
@@ -765,88 +823,7 @@ Auditpol /set /subcategory:"Filtering Platform Policy Change" /success:disable /
 Auditpol /set /subcategory:"Security State Change" /success:enable /failure:enable
 Auditpol /set /subcategory:"Security System Extension" /success:enable /failure:enable
 Auditpol /set /subcategory:"System Integrity" /success:enable /failure:enable
-:: Uninstall pups
-:: ---------------------
-:: wmic /interactive:off product where "name like 'Ask Part%' and version like'%'" call uninstall
-:: wmic /interactive:off product where "name like 'searchAssistant%' and version like'%'" call uninstall
-:: wmic /interactive:off product where "name like 'Weatherbug%' and version like'%'" call uninstall
-:: wmic /interactive:off product where "name like 'ShopAtHome%' and version like'%'" call uninstall
-::
-:: Uninstall common extra apps found on a lot of Win10 installs
-:: Obviously do a quick review to ensure it isn't removing any apps you or your user need to use.
-:: https://docs.microsoft.com/en-us/windows/application-management/apps-in-windows-10
-:: PowerShell command to reinstall all pre-installed apps below
-:: Get-AppxPackage -AllUsers| Foreach {Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml"}
-powershell.exe -command "Get-AppxPackage *Microsoft.BingWeather* -AllUsers | Remove-AppxPackage"
-powershell.exe -command "Get-AppxPackage *Microsoft.GetHelp* -AllUsers | Remove-AppxPackage"
-powershell.exe -command "Get-AppxPackage *Microsoft.Getstarted* -AllUsers | Remove-AppxPackage"
-powershell.exe -command "Get-AppxPackage *Microsoft.Messaging* -AllUsers | Remove-AppxPackage"
-powershell.exe -command "Get-AppxPackage *Microsoft.Microsoft3DViewer* -AllUsers | Remove-AppxPackage"
-powershell.exe -command "Get-AppxPackage *Microsoft.MicrosoftOfficeHub* -AllUsers | Remove-AppxPackage"
-powershell.exe -command "Get-AppxPackage *Microsoft.MicrosoftSolitaireCollection* -AllUsers | Remove-AppxPackage"
-:: powershell.exe -command "Get-AppxPackage *Microsoft.MicrosoftNotes* -AllUsers | Remove-AppxPackage"
-powershell.exe -command "Get-AppxPackage *Microsoft.MixedReality.Portal* -AllUsers | Remove-AppxPackage"
-:: powershell.exe -command "Get-AppxPackage *Microsoft.Office.OneNote* -AllUsers | Remove-AppxPackage"
-powershell.exe -command "Get-AppxPackage *Microsoft.OneConnect* -AllUsers | Remove-AppxPackage"
-powershell.exe -command "Get-AppxPackage *Microsoft.Print3D* -AllUsers | Remove-AppxPackage"
-:: powershell.exe -command "Get-AppxPackage *Microsoft.SkypeApp* -AllUsers | Remove-AppxPackage"
-powershell.exe -command "Get-AppxPackage *Microsoft.Wallet* -AllUsers | Remove-AppxPackage"
-powershell.exe -command "Get-AppxPackage *Microsoft.WebMediaExtensions* -AllUsers | Remove-AppxPackage"
-powershell.exe -command "Get-AppxPackage *Microsoft.WebpImageExtension* -AllUsers | Remove-AppxPackage"
-:: powershell.exe -command "Get-AppxPackage *Microsoft.WindowsAlarms* -AllUsers | Remove-AppxPackage"
-:: powershell.exe -command "Get-AppxPackage *Microsoft.WindowsCamera* -AllUsers | Remove-AppxPackage"
-powershell.exe -command "Get-AppxPackage *microsoft.windowscommunicationsapps* -AllUsers | Remove-AppxPackage"
-powershell.exe -command "Get-AppxPackage *Microsoft.WindowsFeedbackHub* -AllUsers | Remove-AppxPackage"
-powershell.exe -command "Get-AppxPackage *Microsoft.WindowsMaps* -AllUsers | Remove-AppxPackage"
-powershell.exe -command "Get-AppxPackage *Microsoft.WindowsSoundRecorder* -AllUsers | Remove-AppxPackage"
-powershell.exe -command "Get-AppxPackage *Microsoft.Xbox.TCUI* -AllUsers | Remove-AppxPackage"
-powershell.exe -command "Get-AppxPackage *Microsoft.XboxApp* -AllUsers | Remove-AppxPackage"
-powershell.exe -command "Get-AppxPackage *Microsoft.XboxGameOverlay* -AllUsers | Remove-AppxPackage"
-powershell.exe -command "Get-AppxPackage *Microsoft.XboxGamingOverlay* -AllUsers | Remove-AppxPackage"
-powershell.exe -command "Get-AppxPackage *Microsoft.XboxIdentityProvider* -AllUsers | Remove-AppxPackage"
-powershell.exe -command "Get-AppxPackage *Microsoft.XboxSpeechToTextOverlay* -AllUsers | Remove-AppxPackage"
-powershell.exe -command "Get-AppxPackage *Microsoft.YourPhone* -AllUsers | Remove-AppxPackage"
-powershell.exe -command "Get-AppxPackage *Microsoft.ZuneMusic* -AllUsers | Remove-AppxPackage"
-powershell.exe -command "Get-AppxPackage *Microsoft.ZuneVideo* -AllUsers | Remove-AppxPackage"
-powershell.exe -command "Get-AppxPackage *Microsoft.WindowsFeedback* -AllUsers | Remove-AppxPackage"
-powershell.exe -command "Get-AppxPackage *Windows.ContactSupport* -AllUsers | Remove-AppxPackage"
-powershell.exe -command "Get-AppxPackage *PandoraMedia* -AllUsers | Remove-AppxPackage"
-powershell.exe -command "Get-AppxPackage *AdobeSystemIncorporated. AdobePhotoshop* -AllUsers | Remove-AppxPackage"
-powershell.exe -command "Get-AppxPackage *Duolingo* -AllUsers | Remove-AppxPackage"
-powershell.exe -command "Get-AppxPackage *Microsoft.BingNews* -AllUsers | Remove-AppxPackage"
-powershell.exe -command "Get-AppxPackage *Microsoft.Office.Sway* -AllUsers | Remove-AppxPackage"
-powershell.exe -command "Get-AppxPackage *Microsoft.Advertising.Xaml* -AllUsers | Remove-AppxPackage"
-powershell.exe -command "Get-AppxPackage *Microsoft.Services.Store.Engagement* -AllUsers | Remove-AppxPackage"
-powershell.exe -command "Get-AppxPackage *ActiproSoftware* -AllUsers | Remove-AppxPackage"
-powershell.exe -command "Get-AppxPackage *EclipseManager* -AllUsers | Remove-AppxPackage"
-powershell.exe -command "Get-AppxPackage *SpotifyAB.SpotifyMusic* -AllUsers | Remove-AppxPackage"
-powershell.exe -command "Get-AppxPackage *king.com.* -AllUsers | Remove-AppxPackage"
-powershell.exe -command "Get-AppxPackage *Microsoft.NET.Native.Framework.1.* -AllUsers | Remove-AppxPackage"
-powershell.exe -command "Get-AppxPackage *netflix* | Remove-AppxPackage"
-:: Removed Provisioned Apps
-:: This will prevent these apps from being reinstalled on new user first logon
-:: Obviously I manually chose this list. If you truly want to nuke all the provisioned apps, you can use the below commented command in PowerShell
-:: Get-AppXProvisionedPackage -Online | Remove-AppxProvisionedPackage -Online
-powershell.exe -command "Get-AppxProvisionedPackage -Online | Where-Object {$_.DisplayName -eq 'Microsoft.BingWeather'} | Remove-AppxProvisionedPackage -Online"
-powershell.exe -command "Get-AppxProvisionedPackage -Online | Where-Object {$_.DisplayName -eq 'Microsoft.GetHelp'} | Remove-AppxProvisionedPackage -Online"
-powershell.exe -command "Get-AppxProvisionedPackage -Online | Where-Object {$_.DisplayName -eq 'Microsoft.Getstarted'} | Remove-AppxProvisionedPackage -Online"
-powershell.exe -command "Get-AppxProvisionedPackage -Online | Where-Object {$_.DisplayName -eq 'Microsoft.MicrosoftOfficeHub'} | Remove-AppxProvisionedPackage -Online"
-powershell.exe -command "Get-AppxProvisionedPackage -Online | Where-Object {$_.DisplayName -eq 'Microsoft.MicrosoftSolitaireCollection'} | Remove-AppxProvisionedPackage -Online"
-powershell.exe -command "Get-AppxProvisionedPackage -Online | Where-Object {$_.DisplayName -eq 'Microsoft.MixedReality.Portal'} | Remove-AppxProvisionedPackage -Online"
-:: powershell.exe -command "Get-AppxProvisionedPackage -Online | Where-Object {$_.DisplayName -eq 'Microsoft.WindowsAlarms'} | Remove-AppxProvisionedPackage -Online"
-powershell.exe -command "Get-AppxProvisionedPackage -Online | Where-Object {$_.DisplayName -eq 'microsoft.windowscommunicationsapps'} | Remove-AppxProvisionedPackage -Online"
-powershell.exe -command "Get-AppxProvisionedPackage -Online | Where-Object {$_.DisplayName -eq 'Microsoft.WindowsFeedbackHub'} | Remove-AppxProvisionedPackage -Online"
-powershell.exe -command "Get-AppxProvisionedPackage -Online | Where-Object {$_.DisplayName -eq 'Microsoft.WindowsMaps'} | Remove-AppxProvisionedPackage -Online"
-powershell.exe -command "Get-AppxProvisionedPackage -Online | Where-Object {$_.DisplayName -eq 'Microsoft.WindowsSoundRecorder'} | Remove-AppxProvisionedPackage -Online"
-powershell.exe -command "Get-AppxProvisionedPackage -Online | Where-Object {$_.DisplayName -eq 'Microsoft.XboxApp'} | Remove-AppxProvisionedPackage -Online"
-powershell.exe -command "Get-AppxProvisionedPackage -Online | Where-Object {$_.DisplayName -eq 'Microsoft.XboxTCUI'} | Remove-AppxProvisionedPackage -Online"
-powershell.exe -command "Get-AppxProvisionedPackage -Online | Where-Object {$_.DisplayName -eq 'Microsoft.XboxGameOverlay'} | Remove-AppxProvisionedPackage -Online"
-powershell.exe -command "Get-AppxProvisionedPackage -Online | Where-Object {$_.DisplayName -eq 'Microsoft.XboxGamingOverlay'} | Remove-AppxProvisionedPackage -Online"
-powershell.exe -command "Get-AppxProvisionedPackage -Online | Where-Object {$_.DisplayName -eq 'Microsoft.XboxIdentityProvider'} | Remove-AppxProvisionedPackage -Online"
-powershell.exe -command "Get-AppxProvisionedPackage -Online | Where-Object {$_.DisplayName -eq 'Microsoft.YourPhone'} | Remove-AppxProvisionedPackage -Online"
-powershell.exe -command "Get-AppxProvisionedPackage -Online | Where-Object {$_.DisplayName -eq 'Microsoft.ZuneMusic'} | Remove-AppxProvisionedPackage -Online"
-powershell.exe -command "Get-AppxProvisionedPackage -Online | Where-Object {$_.DisplayName -eq 'Microsoft.ZuneVideo'} | Remove-AppxProvisionedPackage -Online"
-::
+:: strip_windows.ps1 handles this
 :: Adobe Reader DC STIG
 reg add "HKLM\Software\Policies\Adobe\Acrobat Reader\DC\FeatureLockDown\cCloud" /f
 reg add "HKLM\Software\Policies\Adobe\Acrobat Reader\DC\FeatureLockDown\cDefaultLaunchURLPerms" /f
@@ -935,13 +912,13 @@ reg add "HKLM\Software\Policies\Google\Chrome" /v "IncognitoModeAvailability" /t
 reg add "HKLM\Software\Policies\Google\Chrome" /v "EnableOnlineRevocationChecks" /t REG_DWORD /d "16777216" /f
 reg add "HKLM\Software\Policies\Google\Chrome" /v "SavingBrowserHistoryDisabled" /t REG_DWORD /d "0" /f
 reg add "HKLM\Software\Policies\Google\Chrome" /v "DefaultPluginsSetting" /t REG_DWORD /d "50331648" /f
-reg add "HKLM\Software\Policies\Google\Chrome" /v "AllowDeletingBrowserHistory" /t REG_DWORD /d "0" /f
+reg add "HKLM\Software\Policies\Google\Chrome" /v "AllowDeletingBrowserHistory" /t REG_DWORD /d "1" /f
 reg add "HKLM\Software\Policies\Google\Chrome" /v "PromptForDownloadLocation" /t REG_DWORD /d "16777216" /f
 reg add "HKLM\Software\Policies\Google\Chrome" /v "DownloadRestrictions" /t REG_DWORD /d "33554432" /f
 reg add "HKLM\Software\Policies\Google\Chrome" /v "AutoplayAllowed" /t REG_DWORD /d "0" /f
 reg add "HKLM\Software\Policies\Google\Chrome" /v "SafeBrowsingExtendedReportingEnabled" /t REG_DWORD /d "0" /f
 reg add "HKLM\Software\Policies\Google\Chrome" /v "DefaultWebUsbGuardSetting" /t REG_DWORD /d "33554432" /f
-reg add "HKLM\Software\Policies\Google\Chrome" /v "ChromeCleanupEnabled" /t REG_DWORD /d "0" /f
+reg add "HKLM\Software\Policies\Google\Chrome" /v "ChromeCleanupEnabled" /t REG_DWORD /d "1" /f
 reg add "HKLM\Software\Policies\Google\Chrome" /v "ChromeCleanupReportingEnabled" /t REG_DWORD /d "0" /f
 reg add "HKLM\Software\Policies\Google\Chrome" /v "EnableMediaRouter" /t REG_DWORD /d "0" /f
 reg add "HKLM\Software\Policies\Google\Chrome" /v "SSLVersionMin" /t REG_SZ /d "tls1.1" /f
