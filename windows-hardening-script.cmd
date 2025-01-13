@@ -133,15 +133,14 @@ reg add "HKCU\SOFTWARE\Microsoft\Windows Defender" /v PassiveMode /t REG_DWORD /
 :: powershell.exe -command "Set-MpPreference -DisableRealtimeMonitoring $false"
 :: reg add "HKLM\SOFTWARE\Microsoft\Windows Defender\Real-Time Protection" /v DisableRealtimeMonitoring /t REG_DWORD /d 0 /f
 ::
+:: Note - this should be made configurable
 :: Enable early launch antimalware driver for scan of boot-start drivers
 :: 3 is the default which allows good, unknown and 'bad but critical'. Recommend trying 1 for 'good and unknown' or 8 which is 'good only'
 reg add "HKCU\SYSTEM\CurrentControlSet\Policies\EarlyLaunch" /v DriverLoadPolicy /t REG_DWORD /d 3 /f
 ::
 :: https://twitter.com/duff22b/status/1280166329660497920
-:: Stop some of the most common SMB based lateral movement techniques dead in their tracks
-powershell.exe Set-MpPreference -AttackSurfaceReductionRules_Ids D1E49AAC-8F56-4280-B9BA-993A6D -AttackSurfaceReductionRules_Actions Enabled
 ::
-:: Handled
+:: Handled by Enable-ExploitGuard-AttackSurfaceReduction.ps1
 ::
 :: EDIT: Enable Controlled Folder Access - enable with caution. Application installations may be blocked - admin elevation 
 :: required to approve an app install through CFA. This is an extremely valuable setting but only for machines which are already fully configured. 
@@ -149,10 +148,10 @@ powershell.exe Set-MpPreference -AttackSurfaceReductionRules_Ids D1E49AAC-8F56-4
 :: Read and follow this guide before enabling: https://www.prajwaldesai.com/enable-controlled-folder-access-using-group-policy/
 powershell.exe Set-MpPreference -EnableControlledFolderAccess Enabled
 :: to add exclusion folders or apps, use the following command: powershell.exe Add-MpPreference -ExclusionPath 'C:\Program Files\App\app.exe' 
-::
+:: Ask
 :: Enable Cloud functionality of Windows Defender
-powershell.exe Set-MpPreference -MAPSReporting Advanced
-powershell.exe Set-MpPreference -SubmitSamplesConsent SendAllSamples
+:: powershell.exe Set-MpPreference -MAPSReporting Advanced
+:: powershell.exe Set-MpPreference -SubmitSamplesConsent SendAllSamples
 ::
 :: HAndled
 :: Enable Defender exploit system-wide protection
@@ -195,10 +194,10 @@ powershell.exe Set-MpPreference -EnableNetworkProtection Enabled
 :: Windows10-v1903_ExploitGuard-Security-Baseline.xml is taken from the official Microsoft v1903 Baseline
 :: Windows10-v1909_ExploitGuard-Security-Baseline.xml is taken from the official Microsoft v1909 Baseline
 :: -
-:: note--------------------
-powershell.exe Invoke-WebRequest -Uri https://demo.wd.microsoft.com/Content/ProcessMitigation.xml -OutFile ProcessMitigation.xml
-powershell.exe Set-ProcessMitigation -PolicyFilePath ProcessMitigation.xml
-del ProcessMitigation.xml
+:: note Move to harden.ps1
+:: powershell.exe Invoke-WebRequest -Uri https://demo.wd.microsoft.com/Content/ProcessMitigation.xml -OutFile ProcessMitigation.xml
+::powershell.exe Set-ProcessMitigation -PolicyFilePath ProcessMitigation.xml
+::del ProcessMitigation.xml
 ::
 ::###############################################################################################################
 :: Windows Defender Device Guard - Application Control Policies (Windows 10 Only)
@@ -346,7 +345,7 @@ reg add "HKLM\SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters" /v SMB1
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\LanManServer\Parameters" /v RestrictNullSessAccess /t REG_DWORD /d 1 /f
 reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" /v EnableLUA /t REG_DWORD /d 1 /f
 reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" /v EnableVirtualization /t REG_DWORD /d 1 /f
-reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" /v ConsentPromptBehaviorAdmin /t REG_DWORD /d 2 /f
+::reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" /v ConsentPromptBehaviorAdmin /t REG_DWORD /d 2 /f
 reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Attachments" /v SaveZoneInformation /t REG_DWORD /d 2 /f
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Explorer" /v NoDataExecutionPrevention /t REG_DWORD /d 0 /f
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Explorer" /v NoHeapTerminationOnCorruption /t REG_DWORD /d 0 /f
@@ -355,6 +354,7 @@ reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows NT\Printers" /v DisableHTTPPri
 reg add "HKLM\SOFTWARE\Microsoft\WcmSvc\wifinetworkmanager\config" /v AutoConnectAllowedOEM /t REG_DWORD /d 0 /f
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\WcmSvc\GroupPolicy" /v fMinimizeConnections /t REG_DWORD /d 1 /f
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\Netbt\Parameters" /v NoNameReleaseOnDemand /t REG_DWORD /d 1 /f
+:: Ask i guess
 :: the next setting could impact RDP connections to desktops from other domain users and machines. Enable it in environments where you don't use RDP to internal user machines or you don't allow users to share folders on their machines. 
 :: reg add "HKLM\SYSTEM\CurrentControlSet\Control\Lsa\MSV1_0" /v RestrictReceivingNTLMTraffic /t REG_DWORD /d 2 /f
 :: THIS BREAKS RDP (outgoing to other domain machines) & SHARES
@@ -495,11 +495,11 @@ reg add "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control" /v DisableRemoteSc
 wmic /interactive:off nicconfig where TcpipNetbiosOptions=0 call SetTcpipNetbios 2
 wmic /interactive:off nicconfig where TcpipNetbiosOptions=1 call SetTcpipNetbios 2
 :: Disable NTLMv1
-powershell.exe Disable-WindowsOptionalFeature -Online -FeatureName smb1protocol
+::powershell.exe Disable-WindowsOptionalFeature -Online -FeatureName smb1protocol
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\mrxsmb10" /v Start /t REG_DWORD /d 4 /f
-:: Disable Powershellv2
-powershell.exe Disable-WindowsOptionalFeature -Online -FeatureName MicrosoftWindowsPowerShellV2
-powershell.exe Disable-WindowsOptionalFeature -Online -FeatureName MicrosoftWindowsPowerShellV2Root
+:: Disable Powershellv2 -moved to harden.ps1
+:: powershell.exe Disable-WindowsOptionalFeature -NoRestart -Online -FeatureName MicrosoftWindowsPowerShellV2
+:: powershell.exe Disable-WindowsOptionalFeature -NoRestart -Online -FeatureName MicrosoftWindowsPowerShellV2Root
 ::
 ::#######################################################################
 :: Harden lsass to help protect against credential dumping (Mimikatz)
@@ -612,8 +612,8 @@ netsh advfirewall firewall add rule name="Block wscript.exe netconns" program="%
 netsh advfirewall firewall add rule name="Block wscript.exe netconns" program="%systemroot%\SysWOW64\wscript.exe" protocol=tcp dir=out enable=yes action=block profile=any
 netsh Advfirewall set allprofiles state on
 ::
-:: Disable TCP timestamps
-netsh int tcp set global timestamps=disabled
+:: Disable TCP timestamps - why?
+::netsh int tcp set global timestamps=disabled
 ::
 :: Enable Firewall Logging
 :: ---------------------
@@ -792,13 +792,13 @@ reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\CurrentVersion\PushNotificatio
 ::#######################################################################
 :: Enable Advanced Windows Logging
 ::#######################################################################
-::
+:: HAndled by Yamato/ewls
 :: Enlarge Windows Event Security Log Size
-wevtutil sl Security /ms:1024000
-wevtutil sl Application /ms:1024000
-wevtutil sl System /ms:1024000
-wevtutil sl "Windows Powershell" /ms:1024000
-wevtutil sl "Microsoft-Windows-PowerShell/Operational" /ms:1024000
+:: wevtutil sl Security /ms:1024000
+:: wevtutil sl Application /ms:1024000
+:: wevtutil sl System /ms:1024000
+:: wevtutil sl "Windows Powershell" /ms:1024000
+:: wevtutil sl "Microsoft-Windows-PowerShell/Operational" /ms:1024000
 :: Record command line data in process creation events eventid 4688
 reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\Audit" /v ProcessCreationIncludeCmdLine_Enabled /t REG_DWORD /d 1 /f
 ::
@@ -934,3 +934,4 @@ reg add "HKLM\Software\Policies\Google\Update" /v "AutoUpdateCheckPeriodMinutes"
 reg add "HKLM\Software\Policies\Google\Chrome\Recommended" /v "SafeBrowsingProtectionLevel" /t REG_DWORD /d "2" /f
 :: Enforce device driver signing
 BCDEDIT /set nointegritychecks OFF
+pause
