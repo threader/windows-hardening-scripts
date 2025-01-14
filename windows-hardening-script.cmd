@@ -97,10 +97,9 @@ reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\System" /v DontDisplayNetworkS
 :: https://portal.msrc.microsoft.com/en-US/security-guidance/advisory/ADV200005
 :: Active Directory Administrative Templates
 :: https://github.com/technion/DisableSMBCompression
-:: Disable SMBv3 compression
-:: You can disable compression to block unauthenticated attackers from exploiting the vulnerability against an SMBv3 Server with the PowerShell command below.
-:: No reboot is needed after making the change. This workaround does not prevent exploitation of SMB clients.
-powershell.exe Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters" DisableCompression -Type DWORD -Value 1 -Force
+
+:: moved
+
 :: You can disable the workaround with the PowerShell command below.
 :: powershell.exe Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters" DisableCompression -Type DWORD -Value 0 -Force
 
@@ -123,8 +122,7 @@ powershell.exe Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\L
 setx /M MP_FORCE_USE_SANDBOX 1
 :: Update signatures
 "%ProgramFiles%"\"Windows Defender"\MpCmdRun.exe -SignatureUpdate
-:: Enable Defender signatures for Potentially Unwanted Applications (PUA)
-powershell.exe Set-MpPreference -PUAProtection enable
+:: moved
 :: Enable Defender periodic scanning
 reg add "HKCU\SOFTWARE\Microsoft\Windows Defender" /v PassiveMode /t REG_DWORD /d 2 /f
 ::
@@ -146,7 +144,7 @@ reg add "HKCU\SYSTEM\CurrentControlSet\Policies\EarlyLaunch" /v DriverLoadPolicy
 :: required to approve an app install through CFA. This is an extremely valuable setting but only for machines which are already fully configured. 
 :: In environments where you can whitelist CFA apps through Group Policy your life will be easier. 
 :: Read and follow this guide before enabling: https://www.prajwaldesai.com/enable-controlled-folder-access-using-group-policy/
-powershell.exe Set-MpPreference -EnableControlledFolderAccess Enabled
+:: powershell.exe Set-MpPreference -EnableControlledFolderAccess Enabled
 :: to add exclusion folders or apps, use the following command: powershell.exe Add-MpPreference -ExclusionPath 'C:\Program Files\App\app.exe' 
 :: Ask
 :: Enable Cloud functionality of Windows Defender
@@ -169,11 +167,7 @@ powershell.exe Set-MpPreference -EnableControlledFolderAccess Enabled
 :: reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\DeviceGuard" /v RequirePlatformSecurityFeatures /t REG_DWORD /d 3 /f
 :: reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\DeviceGuard" /v LsaCfgFlags /t REG_DWORD /d 1 /f
 ::
-:: Enable Network protection
-:: Enabled - Users will not be able to access malicious IP addresses and domains
-:: Disable (Default) - The Network protection feature will not work. Users will not be blocked from accessing malicious domains
-:: AuditMode - If a user visits a malicious IP address or domain, an event will be recorded in the Windows event log but the user will not be blocked from visiting the address.
-powershell.exe Set-MpPreference -EnableNetworkProtection Enabled 
+:: moved
 ::
 ::###############################################################################################################
 :: Enable exploit protection (EMET on Windows 10)
@@ -195,10 +189,6 @@ powershell.exe Set-MpPreference -EnableNetworkProtection Enabled
 :: Windows10-v1909_ExploitGuard-Security-Baseline.xml is taken from the official Microsoft v1909 Baseline
 :: -
 :: note Move to harden.ps1
-:: powershell.exe Invoke-WebRequest -Uri https://demo.wd.microsoft.com/Content/ProcessMitigation.xml -OutFile ProcessMitigation.xml
-::powershell.exe Set-ProcessMitigation -PolicyFilePath ProcessMitigation.xml
-::del ProcessMitigation.xml
-::
 ::###############################################################################################################
 :: Windows Defender Device Guard - Application Control Policies (Windows 10 Only)
 :: https://www.petri.com/enabling-windows-10-device-guard
@@ -494,13 +484,9 @@ reg add "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control" /v DisableRemoteSc
 :: Stop NetBIOS over TCP/IP
 wmic /interactive:off nicconfig where TcpipNetbiosOptions=0 call SetTcpipNetbios 2
 wmic /interactive:off nicconfig where TcpipNetbiosOptions=1 call SetTcpipNetbios 2
-:: Disable NTLMv1
-::powershell.exe Disable-WindowsOptionalFeature -Online -FeatureName smb1protocol
+::moved
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\mrxsmb10" /v Start /t REG_DWORD /d 4 /f
-:: Disable Powershellv2 -moved to harden.ps1
-:: powershell.exe Disable-WindowsOptionalFeature -NoRestart -Online -FeatureName MicrosoftWindowsPowerShellV2
-:: powershell.exe Disable-WindowsOptionalFeature -NoRestart -Online -FeatureName MicrosoftWindowsPowerShellV2Root
-::
+:: Powershell stuff2 -moved to harden.ps1
 ::#######################################################################
 :: Harden lsass to help protect against credential dumping (Mimikatz)
 :: Configures lsass.exe as a protected process and disables wdigest
