@@ -333,6 +333,7 @@ reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Installer" /v AlwaysInstallEle
 :: Disable storing password in memory in cleartext
 reg add HKLM\SYSTEM\CurrentControlSet\Control\SecurityProviders\WDigest /v UseLogonCredential /t REG_DWORD /d 0 /f
 :: Prevent Kerberos from using DES or RC4
+reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\Kerberos\Parameters" /v SupportedEncryptionTypes /t REG_DWORD /d 2147483640 /f
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows NT\DNSClient" /v EnableMulticast /t REG_DWORD /d 0 /f
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows NT\DNSClient" /v DisableSmartNameResolution /t REG_DWORD /d 1 /f
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\Dnscache\Parameters" /v DisableParallelAandAAAA /t REG_DWORD /d 1 /f
@@ -540,6 +541,9 @@ netsh advfirewall firewall add rule name="Block cmstp.exe netconns" program="%sy
 netsh advfirewall firewall add rule name="Block cmstp.exe netconns" program="%systemroot%\SysWOW64\cmstp.exe" protocol=tcp dir=out enable=yes action=block profile=any
 netsh advfirewall firewall add rule name="Block cscript.exe netconns" program="%systemroot%\system32\cscript.exe" protocol=tcp dir=out enable=yes action=block profile=any
 netsh advfirewall firewall add rule name="Block cscript.exe netconns" program="%systemroot%\SysWOW64\cscript.exe" protocol=tcp dir=out enable=yes action=block profile=any
+netsh advfirewall firewall add rule name="Block ieinstal.exe netconns" program="%systemroot%\Program Files (x86)\Internet Explorer\ieinstal.exe" protocol=tcp dir=out enable=yes action=block profile=any
+netsh advfirewall firewall add rule name="Block ielowutil.exe netconns" program="%systemroot%\Program Files (x86)\Internet Explorer\ielowutil.exe" protocol=tcp dir=out enable=yes action=block profile=any
+netsh advfirewall firewall add rule name="Block ExtExport.exe netconns" program="%systemroot%\Program Files (x86)\Internet Explorer\ExtExport.exe" protocol=tcp dir=out enable=yes action=block profile=any
 netsh advfirewall firewall add rule name="Block esentutl.exe netconns" program="%systemroot%\system32\esentutl.exe" protocol=tcp dir=out enable=yes action=block profile=any
 netsh advfirewall firewall add rule name="Block esentutl.exe netconns" program="%systemroot%\SysWOW64\esentutl.exe" protocol=tcp dir=out enable=yes action=block profile=any
 netsh advfirewall firewall add rule name="Block expand.exe netconns" program="%systemroot%\system32\expand.exe" protocol=tcp dir=out enable=yes action=block profile=any
@@ -792,13 +796,16 @@ reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\CurrentVersion\PushNotificatio
 ::#######################################################################
 :: Enable Advanced Windows Logging
 ::#######################################################################
-::
+:: Handled by Yamato https://github.com/Yamato-Security/EnableWindowsLogSettings?tab=readme-ov-file#option-2-windows-built-in-tool
 :: Enlarge Windows Event Security Log Size
-wevtutil sl Security /ms:1024000
-wevtutil sl Application /ms:1024000
-wevtutil sl System /ms:1024000
-wevtutil sl "Windows Powershell" /ms:1024000
-wevtutil sl "Microsoft-Windows-PowerShell/Operational" /ms:1024000
+:: wevtutil sl Security /ms:1073741824
+:: wevtutil sl Application /ms:1073741824
+:: wevtutil sl System /ms:1073741824
+:: wevtutil sl "Windows Powershell" /ms:1024000
+:: wevtutil sl "Microsoft-Windows-PowerShell/Operational" /ms:1024000
+
+
+
 :: Record command line data in process creation events eventid 4688
 reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\Audit" /v ProcessCreationIncludeCmdLine_Enabled /t REG_DWORD /d 1 /f
 ::
