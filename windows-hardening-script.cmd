@@ -325,7 +325,7 @@ reg add "HKLM\SYSTEM\CurrentControlSet\Control\Print\Providers\LanMan Print Serv
 :: Enforces the Administrator role for removing and formatting removable NTFS drives
 :: reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows NT\CurrentVersion\Winlogon" /v AllocateDASD /t REG_DWORD /d 0 /f
 :: Forces Installer to NOT use elevated privileges during installs by default, which prevents escalation of privileges vulnerabilities and attacks
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Installer" /v AlwaysInstallElevated /t REG_DWORD /d 0 /f
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Installer" /v AlwaysInstallElevated /t REG_DWORD /d 1 /f
 :: Disable storing passwordin memory in cleartext
 reg add HKLM\SYSTEM\CurrentControlSet\Control\SecurityProviders\WDigest /v UseLogonCredential /t REG_DWORD /d 0 /f
 :: Prevent Kerberos from using DES or RC4
@@ -875,19 +875,19 @@ reg add "HKLM\Software\Policies\Microsoft\Edge\ExtensionInstallForcelist\1" /t R
 reg add "HKEY_LOCAL_MACHINE\Software\Wow6432Node\Microsoft\Edge\Extensions\odfafepnkmbhccpbejgmiehpchacaeak" /v "update_url" /t REG_SZ /d "https://edge.microsoft.com/extensionwebstorebase/v1/crx" /f
 ::
 ::#######################################################################
-:: Enable and Configure Google Chrome Internet Browser Settings
+:: Enable and Configure Chrome Internet Browser Settings
 ::#######################################################################
 ::
 reg add "HKLM\SOFTWARE\Policies\Google\Chrome" /v "AllowCrossOriginAuthPrompt" /t REG_DWORD /d 0 /f
 reg add "HKLM\SOFTWARE\Policies\Google\Chrome" /v "AlwaysOpenPdfExternally" /t REG_DWORD /d 0 /f
 reg add "HKLM\SOFTWARE\Policies\Google\Chrome" /v "AmbientAuthenticationInPrivateModesEnabled" /t REG_DWORD /d 0 /f
-reg add "HKLM\SOFTWARE\Policies\Google\Chrome" /v "AudioCaptureAllowed" /t REG_DWORD /d 1 /f
+:: reg add "HKLM\SOFTWARE\Policies\Google\Chrome" /v "AudioCaptureAllowed" /t REG_DWORD /d 1 /f
 reg add "HKLM\SOFTWARE\Policies\Google\Chrome" /v "AudioSandboxEnabled" /t REG_DWORD /d 1 /f
 reg add "HKLM\SOFTWARE\Policies\Google\Chrome" /v "DnsOverHttpsMode" /t REG_SZ /d on /f
 reg add "HKLM\SOFTWARE\Policies\Google\Chrome" /v "ScreenCaptureAllowed" /t REG_DWORD /d 1 /f
 reg add "HKLM\SOFTWARE\Policies\Google\Chrome" /v "SitePerProcess" /t REG_DWORD /d 1 /f
 reg add "HKLM\SOFTWARE\Policies\Google\Chrome" /v "TLS13HardeningForLocalAnchorsEnabled" /t REG_DWORD /d 1 /f
-reg add "HKLM\SOFTWARE\Policies\Google\Chrome" /v "VideoCaptureAllowed" /t REG_DWORD /d 1 /f
+:: reg add "HKLM\SOFTWARE\Policies\Google\Chrome" /v "VideoCaptureAllowed" /t REG_DWORD /d 1 /f
 ::
 :: #####################################################################
 :: Chrome hardening settings
@@ -918,7 +918,7 @@ reg add "HKLM\Software\Policies\Google\Chrome" /v "DefaultWebUsbGuardSetting" /t
 reg add "HKLM\Software\Policies\Google\Chrome" /v "ChromeCleanupEnabled" /t REG_DWORD /d "1" /f
 reg add "HKLM\Software\Policies\Google\Chrome" /v "ChromeCleanupReportingEnabled" /t REG_DWORD /d "0" /f
 reg add "HKLM\Software\Policies\Google\Chrome" /v "EnableMediaRouter" /t REG_DWORD /d "0" /f
-reg add "HKLM\Software\Policies\Google\Chrome" /v "SSLVersionMin" /t REG_SZ /d "tls1.1" /f
+reg add "HKLM\Software\Policies\Google\Chrome" /v "SSLVersionMin" /t REG_SZ /d "tls1.2" /f
 reg add "HKLM\Software\Policies\Google\Chrome" /v "UrlKeyedAnonymizedDataCollectionEnabled" /t REG_DWORD /d "0" /f
 reg add "HKLM\Software\Policies\Google\Chrome" /v "WebRtcEventLogCollectionAllowed" /t REG_DWORD /d "0" /f
 reg add "HKLM\Software\Policies\Google\Chrome" /v "NetworkPredictionOptions" /t REG_DWORD /d "33554432" /f
@@ -929,6 +929,41 @@ reg add "HKLM\Software\Policies\Google\Chrome\ExtensionInstallForcelist" /v "1" 
 reg add "HKLM\Software\Policies\Google\Chrome\URLBlacklist" /v "1" /t REG_SZ /d "javascript://*" /f
 reg add "HKLM\Software\Policies\Google\Update" /v "AutoUpdateCheckPeriodMinutes" /t REG_DWORD /d "1613168640" /f
 reg add "HKLM\Software\Policies\Google\Chrome\Recommended" /v "SafeBrowsingProtectionLevel" /t REG_DWORD /d "2" /f
+
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v "AllowCrossOriginAuthPrompt" /t REG_DWORD /d 0 /f
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v "AlwaysOpenPdfExternally" /t REG_DWORD /d 0 /f
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v "AmbientAuthenticationInPrivateModesEnabled" /t REG_DWORD /d 0 /f
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v "AudioCaptureAllowed" /t REG_DWORD /d 1 /f
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v "AudioSandboxEnabled" /t REG_DWORD /d 1 /f
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v "DnsOverHttpsMode" /t REG_SZ /d on /f
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v "ScreenCaptureAllowed" /t REG_DWORD /d 1 /f
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v "SitePerProcess" /t REG_DWORD /d 1 /f
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v "TLS13HardeningForLocalAnchorsEnabled" /t REG_DWORD /d 1 /f
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v "VideoCaptureAllowed" /t REG_DWORD /d 1 /f
+:: #####################################################################
+:: Edge hardening settings
+:: #####################################################################
+reg add "HKLM\Software\Policies\Microsoft\Edge" /v "DefaultPopupsSetting" /t REG_DWORD /d "33554432" /f
+reg add "HKLM\Software\Policies\Microsoft\Edge" /v "DefaultGeolocationSetting" /t REG_DWORD /d "33554432" /f
+:: reg add "HKLM\Software\Policies\Microsoft\Edge" /v "DefaultSearchProviderName" /t REG_SZ /d "Google Encrypted" /f
+:: reg add "HKLM\Software\Policies\Microsoft\Edge" /v "DefaultSearchProviderSearchURL" /t REG_SZ /d "https://www.google.com/#q={searchTerms}" /f
+:: reg add "HKLM\Software\Policies\Microsoft\Edge" /v "DefaultSearchProviderEnabled" /t REG_DWORD /d "16777216" /f
+reg add "HKLM\Software\Policies\Microsoft\Edge" /v "BackgroundModeEnabled" /t REG_DWORD /d "0" /f
+reg add "HKLM\Software\Policies\Microsoft\Edge" /v "SearchSuggestEnabled" /t REG_DWORD /d "0" /f
+reg add "HKLM\Software\Policies\Microsoft\Edge" /v "ImportSavedPasswords" /t REG_DWORD /d "0" /f
+reg add "HKLM\Software\Policies\Microsoft\Edge" /v "EnableOnlineRevocationChecks" /t REG_DWORD /d "16777216" /f
+reg add "HKLM\Software\Policies\Microsoft\Edge" /v "SavingBrowserHistoryDisabled" /t REG_DWORD /d "0" /f
+reg add "HKLM\Software\Policies\Microsoft\Edge" /v "AllowDeletingBrowserHistory" /t REG_DWORD /d "1" /f
+reg add "HKLM\Software\Policies\Microsoft\Edge" /v "PromptForDownloadLocation" /t REG_DWORD /d "16777216" /f
+reg add "HKLM\Software\Policies\Microsoft\Edge" /v "DownloadRestrictions" /t REG_DWORD /d "33554432" /f
+reg add "HKLM\Software\Policies\Microsoft\Edge" /v "AutoplayAllowed" /t REG_DWORD /d "0" /f
+reg add "HKLM\Software\Policies\Microsoft\Edge" /v "DefaultWebUsbGuardSetting" /t REG_DWORD /d "33554432" /f
+reg add "HKLM\Software\Policies\Microsoft\Edge" /v "EnableMediaRouter" /t REG_DWORD /d "0" /f
+reg add "HKLM\Software\Policies\Microsoft\Edge" /v "SSLVersionMin" /t REG_SZ /d "tls1.2" /f
+reg add "HKLM\Software\Policies\Microsoft\Edge" /v "NetworkPredictionOptions" /t REG_DWORD /d "33554432" /f
+reg add "HKLM\Software\Policies\Microsoft\Edge" /v "BrowserGuestModeEnabled" /t REG_DWORD /d "0" /f
+reg add "HKLM\Software\Policies\Microsoft\Edge" /v "ImportAutofillFormData" /t REG_DWORD /d "0" /f
+
 :: Enforce device driver signing
 BCDEDIT /set nointegritychecks OFF
 pause
